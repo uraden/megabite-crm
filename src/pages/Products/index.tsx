@@ -115,61 +115,52 @@ function Products() {
     }
   };
 
-  const handleUploadChange = async ({
-    file,
-  }: {
-    file: {
-      status: string;
-      response: { success: boolean; data: { url: string } };
-    };
-  }) => {
-    if (file.status === "done") {
-      const response = file.response;
-      if (response?.success && response?.data?.url) {
-        setImageUrl(response.data.url);
-        message.success("Изображение успешно загружено!");
-      } else {
-        message.error("Ошибка загрузки изображения.");
-      }
-    } else if (file.status === "error") {
-      message.error("Ошибка загрузки изображения.");
-    }
-  };
 
-  const customRequest = async (options: {
-    file: File;
-    onSuccess: (result: { success: boolean; data: { url: string } }) => void;
-    onError: (error: unknown) => void;
-  }) => {
-    const { file, onSuccess, onError } = options;
-    const formData = new FormData();
-    formData.append("image", file);
 
-    try {
-      const response = await fetch(
-        "https://api.imgbb.com/1/upload?key=5be20866388a0566b4ef827905c25307",
-        {
-          method: "POST",
-          body: formData,
+
+const props = {
+    name: 'image',
+    action: 'https://api.imgbb.com/1/upload?key=5be20866388a0566b4ef827905c25307',
+    maxCount: 1,
+    listType: 'picture',
+    onChange: (info: {
+        file: { status: string; response: { data: { url: string } }; name: string };
+    }) => {
+        if (info.file.status === 'done') {
+            setImageUrl(info.file.response.data.url);
+            message.success(`${info.file.name} file uploaded successfully`);
+        } else if (info.file.status === 'error') {
+            message.error(`${info.file.name} file upload failed.`);
         }
-      );
-      const result = await response.json();
-      if (response.ok) {
-        onSuccess(result);
-      } else {
-        onError(result);
-      }
-    } catch (error) {
-      onError(error);
-    }
-  };
+    },
 
-  const uploadButton = (
-    <div>
-      <PlusOutlined />
-      <div style={{ marginTop: 8 }}>Upload</div>
-    </div>
-  );
+}
+
+
+const editProps = {
+    name: 'image',
+    action: 'https://api.imgbb.com/1/upload?key=5be20866388a0566b4ef827905c25307',
+    maxCount: 1,
+    listType: 'picture',
+    defaultFileList: [
+        {
+            uid: '-1',
+            name: 'image.png',
+            status: 'done',
+            url: imageUrl,
+        },
+    ],
+    onChange: (info: {
+        file: { status: string; response: { data: { url: string } }; name: string };
+    }) => {
+        if (info.file.status === 'done') {
+            setImageUrl(info.file.response.data.url);
+            message.success(`${info.file.name} file uploaded successfully`);
+        } else if (info.file.status === 'error') {
+            message.error(`${info.file.name} file upload failed.`);
+        }
+    },
+}
 
   const columns = [
     {
@@ -276,17 +267,14 @@ function Products() {
             </Form.Item>
 
             <Form.Item label="Изображение">
+                {/* eslint-disable-next-line */}
+                {/* @ts-ignore */}
               <Upload
-                customRequest={customRequest}
-                listType="picture-card"
-                maxCount={1}
-                onChange={handleUploadChange}
-              >
-                {imageUrl ? (
-                  <img src={imageUrl} alt="avatar" style={{ width: "100%" }} />
-                ) : (
-                  uploadButton
-                )}
+                {...(editMode ? editProps : props)}
+               >
+                <Button>
+                    Загрузить
+                </Button>
               </Upload>
             </Form.Item>
 
