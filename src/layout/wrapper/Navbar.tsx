@@ -1,7 +1,9 @@
 import { ReactNode, useState } from "react";
 import type { MenuProps } from "antd";
-import { Layout, Menu, theme } from "antd";
+import { Layout, Menu, theme, Badge } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
+import { CiShoppingCart } from "react-icons/ci";
+import { useSelector } from "react-redux";
 
 
 const { Content, Footer, Sider } = Layout;
@@ -53,6 +55,12 @@ export default function Navbar({ children }: { children: ReactNode }) {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
+  const cart = useSelector((state: {
+    cart: {
+      items: unknown[];
+    };
+  }) => state.cart.items);
+
   return (
     <Layout hasSider>
       <Sider
@@ -83,10 +91,14 @@ export default function Navbar({ children }: { children: ReactNode }) {
             backgroundColor: colorBgContainer,
             padding: "20px",
             display: "flex",
-            justifyContent: "space-between",
+            justifyContent: 'end'
           }}
         >
-          <div className="flex items-center"></div>
+          <div className="flex items-center"> 
+          <Badge count={cart.length}>
+     <CiShoppingCart size={30}/>
+    </Badge>
+          </div>
         </div>
 
         <Content style={{ margin: "24px 16px 0", overflow: "initial" }}>
@@ -101,7 +113,7 @@ export default function Navbar({ children }: { children: ReactNode }) {
           </div>
         </Content>
         <Footer style={{ textAlign: "center" }}>
-          OpenTech ©{new Date().getFullYear()} Created by OpenTech Team
+          Mega ©{new Date().getFullYear()} Created by Mega Team
         </Footer>
       </Layout>
     </Layout>
