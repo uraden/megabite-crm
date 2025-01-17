@@ -1,15 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
-import { Button, Drawer, Form, Input, Row, Select, Space, Upload, message } from 'antd';
+import { Button, Drawer, Form, Input, Row, Select, Space, Upload, message, Table, Popconfirm } from 'antd';
 import axios from 'axios';
+import { getAllProducts, deleteProduct } from './request';
+import { CiEdit, CiTrash} from "react-icons/ci";
+
 
 const { Option } = Select;
+
+interface ProductsProps {
+    id: string;
+    category: string;
+    description: string;
+    name: string;
+    url: string;
+}
 
 function Products() {
     const [open, setOpen] = useState(false);
     const [form] = Form.useForm();
     const [imageUrl, setImageUrl] = useState<string>();
     const [loading, setLoading] = useState(false);
+    const [products, setProducts] = useState<ProductsProps[]>([]);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            const products = await getAllProducts();
+            if (products) {
+                setProducts(products);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     const showDrawer = () => {
         setOpen(true);
@@ -34,6 +56,8 @@ function Products() {
     };
 
   
+    // @ts-check
+    // eslint-disable-next-line
     const handleUpload = async (file: File, onSuccess: Function, onError: Function) => {
         const formData = new FormData();
         formData.append('image', file);
@@ -63,17 +87,69 @@ function Products() {
         </div>
     );
 
-    const addNewProduct = (values: any) => {
+    const addNewProduct = (values: {
+        category: string;
+        name: string;
+        description: string;
+    }) => {
         const productData = {
             ...values,
-            image: imageUrl, // Attach the uploaded image URL
+            image: imageUrl, 
         };
         console.log('Product Data:', productData);
         form.resetFields();
         setOpen(false);
+        setImageUrl(undefined);
+        message.success('Товар успешно добавлен!');
     };
 
-    console.log('Image URL:', imageUrl);
+    const deleteProductHandler = async (id: string) => {
+        const isDeleted = await deleteProduct(id);
+        if (isDeleted) {
+            const updatedProducts = products.filter((product) => product.id !== id);
+            setProducts(updatedProducts);
+            message.success('Товар успешно удален!');
+        } else {
+            message.error('Не удалось удалить товар. Пожалуйста, попробуйте еще раз.');
+        }
+    }
+
+    const columns = [
+        {
+            title: 'ID',
+            dataIndex: 'id',
+            key: 'id',
+        },
+        {
+            title: 'Наименование товара',
+            dataIndex: 'name',
+            key: 'name',
+        },
+        {
+            title: 'Категория',
+            dataIndex: 'category',
+            key: 'category',
+        },
+        {
+            title: '',
+            key: 'action',
+            render: (record: ProductsProps) => (
+                <Space className='flex justify-end'>
+                    <div className='mr-6' onClick={()=> {console.log('edit', record?.id)}}><CiEdit size={20}/></div>
+                    <Popconfirm 
+                        title="Вы уверены, что хотите удалить этот товар?" 
+                        okText="Да" 
+                        cancelText="Нет"
+                        onConfirm={() => deleteProductHandler(record?.id)}
+                        >
+                       <CiTrash size={20} className='hover:cursor-pointer'/>
+                    </Popconfirm>
+                </Space>
+            ),
+        }
+    ];
+
+
 
     return (
         <div>
@@ -134,6 +210,8 @@ function Products() {
                                 showUploadList={false}
                                 beforeUpload={beforeUpload}
                                 customRequest={({ file, onSuccess, onError }) =>
+                                    // eslint-disable-next-line
+                                    // @ts-ignore
                                     handleUpload(file as File, onSuccess, onError)
                                 }
                             >
@@ -148,13 +226,16 @@ function Products() {
                         <Row justify="center">
                             <Space>
                                 <Button type="primary" htmlType="submit">
-                                    Save
+                                    Сохранить 
                                 </Button>
-                                <Button onClick={onClose}>Cancel</Button>
+                                <Button onClick={onClose}>Отмена</Button>
                             </Space>
                         </Row>
                     </Form>
                 </Drawer>
+            </div>
+            <div>
+                <Table columns={columns} dataSource={products} rowKey="id" />
             </div>
         </div>
     );
