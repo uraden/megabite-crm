@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { getAllProducts } from "../Products/request";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { addItem } from "../../reduxStore/slices/cartSlice";
+import { message } from 'antd'
 
 interface ProductsProps {
   id: string;
@@ -25,12 +26,6 @@ function Main() {
   useEffect(() => {
     fetchProducts();
   }, []);
-
-  const cart = useSelector((state: {
-    cart: {
-      items: unknown[];
-    };
-  }) => state.cart.items);
 
   const dispatch = useDispatch();
 
@@ -57,15 +52,16 @@ function Main() {
             </div>
             <div
               className="border-x border-b p-2 flex justify-center hover:cursor-pointer"
-              onClick={() => handleAddItem(product)} // Dispatch the action here
+              onClick={() => {
+                handleAddItem(product)
+                message.success('Товар добавлен в корзину!')
+              }} 
             >
               В корзину
             </div>
           </div>
         ))}
-        <div className="mt-4">
-          <h2>Количество в корзине: {cart.length}</h2>
-        </div>
+       
       </div>
     </div>
   );

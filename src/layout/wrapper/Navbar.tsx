@@ -1,10 +1,9 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import type { MenuProps } from "antd";
 import { Layout, Menu, theme, Badge } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
 import { CiShoppingCart } from "react-icons/ci";
 import { useSelector } from "react-redux";
-
 
 const { Content, Footer, Sider } = Layout;
 
@@ -12,16 +11,16 @@ type MenuItem = Required<MenuProps>["items"][number];
 
 export default function Navbar({ children }: { children: ReactNode }) {
   const location = useLocation();
-
-  window.onpageshow = function (event) {
-    if (event.persisted) {
-      window.location.reload();
-    }
-  };
+  const navigate = useNavigate();
 
   const [activeMenu, setActiveMenu] = useState(
     location.pathname.replace("/", "")
   );
+
+  // Synchronize activeMenu with the current route
+  useEffect(() => {
+    setActiveMenu(location.pathname.replace("/", ""));
+  }, [location.pathname]);
 
   function getItem(
     label: React.ReactNode,
@@ -36,18 +35,15 @@ export default function Navbar({ children }: { children: ReactNode }) {
       label,
     } as MenuItem;
   }
+
   const items: MenuItem[] = [
     getItem("Главная", ""),
-    getItem("Категории", "categories",),
-    getItem("Товар", "products",),
-    getItem("Корзина", "cart",),
+    getItem("Категории", "categories"),
+    getItem("Товар", "products"),
+    getItem("Корзина", "cart"),
   ];
 
-
-  const navigate = useNavigate();
-
   const onClickMenu: MenuProps["onClick"] = (e) => {
-    setActiveMenu(e.key);
     navigate(`/${e.key}`);
   };
 
@@ -55,11 +51,13 @@ export default function Navbar({ children }: { children: ReactNode }) {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const cart = useSelector((state: {
-    cart: {
-      items: unknown[];
-    };
-  }) => state.cart.items);
+  const cart = useSelector(
+    (state: {
+      cart: {
+        items: unknown[];
+      };
+    }) => state.cart.items
+  );
 
   return (
     <Layout hasSider>
@@ -79,7 +77,7 @@ export default function Navbar({ children }: { children: ReactNode }) {
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={[activeMenu]}
+          selectedKeys={[activeMenu]} // Use activeMenu to highlight the active item
           items={items}
           onClick={onClickMenu}
           style={{ width: "100%" }}
@@ -91,13 +89,16 @@ export default function Navbar({ children }: { children: ReactNode }) {
             backgroundColor: colorBgContainer,
             padding: "20px",
             display: "flex",
-            justifyContent: 'end'
+            justifyContent: "end",
           }}
         >
-          <div className="flex items-center"> 
-          <Badge count={cart.length}>
-     <CiShoppingCart size={30}/>
-    </Badge>
+          <div
+            className="flex items-center hover:cursor-pointer"
+            onClick={() => navigate("/cart")}
+          >
+            <Badge count={cart.length}>
+              <CiShoppingCart size={30} />
+            </Badge>
           </div>
         </div>
 
