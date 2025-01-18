@@ -14,6 +14,7 @@ import {
   Popconfirm,
 } from "antd";
 import { getAllProducts, deleteProduct, addProduct, updateProduct } from "./request";
+import {getAllCategories} from '../Categories/request'
 import { CiEdit, CiTrash } from "react-icons/ci";
 
 const { Option } = Select;
@@ -27,6 +28,12 @@ interface ProductsProps {
   image: string;
 }
 
+interface CategoriesProps {
+  id: string;
+  name: string;
+}
+
+
 function Products() {
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
@@ -36,6 +43,7 @@ function Products() {
   const [selectedProduct, setSelectedProduct] = useState<ProductsProps | null>(
     null
   );
+  const [categories, setCategories] = useState<CategoriesProps[]>([]);
 
   const fetchProducts = async () => {
     const products = await getAllProducts();
@@ -44,8 +52,21 @@ function Products() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const allCategories = await getAllCategories();
+      if (allCategories) {
+        setCategories(allCategories);
+      }
+    } catch (error) {
+      message.error("Не удалось получить категории");
+      console.log(error)
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const showDrawer = (product?: ProductsProps) => {
@@ -230,13 +251,11 @@ const editProps = {
               ]}
             >
               <Select placeholder="Пожалуйста, выберите категорию">
-                <Option value="electronics">Электроника</Option>
-                <Option value="fashion-appearl">Мода и одежда</Option>
-                <Option value="home-kitchen">Дом и кухня</Option>
-                <Option value="health-beauty">Здоровье и красота</Option>
-                <Option value="sports-outdoors">
-                  Спорт и отдых на природе
-                </Option>
+                {categories.map((category) => (
+                  <Option key={category.id} value={category.name}>
+                    {category.name}
+                  </Option>
+                ))}
               </Select>
             </Form.Item>
 
